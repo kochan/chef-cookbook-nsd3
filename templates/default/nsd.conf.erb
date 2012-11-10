@@ -1,0 +1,33 @@
+server:
+  hide-version: no
+  debug-mode: no
+  ip4-only: no
+  ip6-only: no
+  database: "<%= node[:nsd3][:conf][:database] %>"
+  identity: "unidentified server"
+  logfile: "<%= node[:nsd3][:conf][:logfile] %>"
+  server-count: 1
+  tcp-count: 10
+  tcp-query-count: 0
+  tcp-timeout: 120
+  pidfile: "<%= node[:nsd3][:conf][:pidfile] %>"
+  port: 53
+  zone-stats-file: "<%= node[:nsd3][:conf][:statfile] %>"
+  chroot: "<%= node[:nsd3][:dir] %>"
+  username: "<%= node[:nsd3][:user] %>"
+  zonesdir: "<%= node[:nsd3][:conf][:zonesdir] %>"
+  difffile: "<%= node[:nsd3][:conf][:difffile] %>"
+  xfrdfile: "<%= node[:nsd3][:conf][:xfrdfile] %>"
+  verbosity: 0
+
+zone:
+  name: "localhost"
+  zonefile: "master/db.localhost"
+
+zone:
+  name: "1.0.0.127.in-addr.arpa"
+  zonefile: "master/db.loopback"
+
+zone:
+  name: "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"
+  zonefile: "master/db.loopback"

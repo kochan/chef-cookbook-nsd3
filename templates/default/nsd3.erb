@@ -1,0 +1,70 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:          nsd3
+# Required-Start:    $syslog $remote_fs
+# Required-Stop:     $syslog $remote_fs
+# Should-Start:      $local_fs
+# Should-Stop:       $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start NSD3
+# Description:       Provides an authoritative only Name Server Daemon.
+### END INIT INFO
+
+test -x <%= node[:nsd3][:dir] %>/sbin/nsd || exit 0
+
+. /lib/lsb/init-functions
+
+nsd_cfg() {
+    res=$(<%= node[:nsd3][:dir] %>/sbin/nsd-checkconf -o "$1" <%= node[:nsd3][:dir] %>/etc/nsd/nsd.conf)
+    echo ${res:-"$2"}
+}
+
+nsdc_log() {
+    log_begin_msg "$2"
+    <%= node[:nsd3][:dir] %>/sbin/nsdc "$1" > /dev/null
+    RET=$?
+    log_end_msg $RET
+    if [ "$RET" -ne 0 ]; then
+        exit $RET
+    fi
+    return $RET
+}
+
+if test \! -f <%= node[:nsd3][:dir] %>/etc/nsd/nsd.conf; then
+    log_begin_msg "Missing <%= node[:nsd3][:dir] %>/etc/nsd/nsd.conf configuration file."
+    log_end_msg 0
+    exit 0
+fi
+
+case "$1" in
+    start)
+        if test \! -f "$(nsd_cfg database <%= node[:nsd3][:conf][:database] %>)"; then
+            nsdc_log rebuild "Building nsd3 zones..."
+        fi
+        nsdc_log start   "Starting nsd3..."
+        ;;
+    stop)
+        nsdc_log stop    "Stopping nsd3..."
+        ;;
+    reload|rebuild|force-reload)
+        nsdc_log rebuild "Building nsd3 zones..."
+        nsdc_log reload  "Reloading nsd3..."
+        ;;
+    restart)
+        nsdc_log restart "Restarting nsd3..."
+        ;;
+    notify)
+        nsdc_log notify  "Notifying nsd3 slaves..."
+        ;;
+    update)
+        nsdc_log update  "Updating nsd3 slave zones..."
+        ;;
+    *)
+        opts=`grep '^ *[a-z|-]*)$' "$0" | tr -d ' \n' | tr ')' '|'`
+        echo "Usage: /etc/init.d/nsd3 {${opts%|}}" >&2
+        exit 1
+        ;;
+esac
+
+exit $?
